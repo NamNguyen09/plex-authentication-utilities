@@ -9,3 +9,4 @@
 /obj/Debug
 /cx.Authentication/bin
 /cx.Authentication/obj
+*.nupkg
