@@ -7,6 +7,7 @@ using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using cx.Authentication.Extensions;
 using cx.Authentication.Utilities.Dtos;
 using cx.Authentication.Utilities.Extentions;
 using cx.Authentication.Utilities.Settings;
@@ -150,7 +151,7 @@ namespace cx.Authentication.Services
             return string.Empty;
         }
 
-        public virtual Task GetClaimsAndAuthentication(AuthorizationCodeReceivedNotification context, LoginProvider ils)
+        public virtual Task SetAuthentication(AuthorizationCodeReceivedNotification context, LoginProvider ils)
         {
             if (context == null || ils == null || ils.OidcSetting == null) return Task.CompletedTask;
 
@@ -162,16 +163,17 @@ namespace cx.Authentication.Services
                 return Task.CompletedTask;
             }
 
-            string codeVerifier = context.TokenEndpointRequest.Parameters.ContainsKey(OidcConstants.TokenRequest.CodeVerifier) ? context.TokenEndpointRequest.Parameters[OidcConstants.TokenRequest.CodeVerifier] : null;
+            string codeVerifier = context.TokenEndpointRequest.Parameters.ContainsKey(OidcConstants.TokenRequest.CodeVerifier) ?
+                                            context.TokenEndpointRequest.Parameters[OidcConstants.TokenRequest.CodeVerifier] : null;
             // use the code to get the access and refresh token
-            var tokenClient = new TokenClient(new HttpClient(), new TokenClientOptions
+            TokenClient tokenClient = new TokenClient(new HttpClient(), new TokenClientOptions
             {
                 Address = oidcSetting.TokenEndPoint,
                 ClientId = ils.ClientId,
                 ClientSecret = ils.ClientSecret,
                 ClientCredentialStyle = ClientCredentialStyle.PostBody
             });
-            var tokenResponse = tokenClient.RequestAuthorizationCodeTokenAsync(context.Code, ils.RedirectUri, codeVerifier).Result;
+            TokenResponse tokenResponse = tokenClient.RequestAuthorizationCodeTokenAsync(context.Code, ils.RedirectUri, codeVerifier).Result;
 
             // Check security level
             JwtSecurityToken jwtIdToken = new JwtSecurityToken(tokenResponse.IdentityToken);
@@ -196,14 +198,14 @@ namespace cx.Authentication.Services
             }
             else
             {
-                var accessTokenClient = new TokenClient(new HttpClient(), new TokenClientOptions
+                TokenClient accessTokenClient = new TokenClient(new HttpClient(), new TokenClientOptions
                 {
                     Address = oidcSetting.TokenEndPoint,
-                    ClientId = ils.ClientId,
-                    ClientSecret = ils.ClientSecret,
+                    ClientId = oidcSetting.ClientId,
+                    ClientSecret = oidcSetting.ClientSecret,
                     ClientCredentialStyle = ClientCredentialStyle.PostBody
                 });
-                var accessTokenResponse = accessTokenClient.RequestClientCredentialsTokenAsync(oidcSetting.Scope).Result;
+                TokenResponse accessTokenResponse = accessTokenClient.RequestClientCredentialsTokenAsync(oidcSetting.Scope).Result;
                 accessToken = accessTokenResponse.AccessToken;
             }
 
@@ -220,70 +222,51 @@ namespace cx.Authentication.Services
             var identityClaims = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationType);
             identityClaims.AddClaim(new Claim(OidcConstants.TokenRequest.Code, context.Code));
             identityClaims.AddClaim(new Claim(OidcConstants.TokenResponse.AccessToken, accessToken));
-
             identityClaims.AddClaim(new Claim(OidcConstants.AuthorizeResponse.ExpiresIn, DateTime.Now.AddSeconds(tokenResponse.ExpiresIn).ToLocalTime().ToString()));
             ////identityClaims.AddClaim(new Claim(ClaimKeys.RefreshToken, refreshToken));
             identityClaims.AddClaim(new Claim(OidcConstants.TokenResponse.IdentityToken, tokenResponse.IdentityToken));
 
-            string ssn = "";
-            string sub = "";
+            string primaryClaimValue = "";
+            string secondaryClaimValue = "";
             if (string.IsNullOrWhiteSpace(oidcSetting.UserInfoEndPoint))
             {
-                Claim ssnClaim = jwtIdToken.Claims.FirstOrDefault(t => t.Type.EqualsIgnoreCase(ils.PrimaryClaimType));
-                if (ssnClaim == null)
-                {
-                    _logger.ErrorFormat("Missing uid claim from idtoken after user login successfully with {0}",
-                          ils.LoginServiceID);
-                    return Task.CompletedTask;
-                }
-                ssn = ssnClaim.Value;
-
-                Claim subClaim = jwtIdToken.Claims.FirstOrDefault(t => t.Type.EqualsIgnoreCase(cxClaimKeys.Sub));
-                if (subClaim == null)
-                {
-                    _logger.ErrorFormat("Missing sub claim from idtoken after user login successfully with {0}",
-                          ils.LoginServiceID);
-                    return Task.CompletedTask;
-                }
-                sub = subClaim.Value;
+                primaryClaimValue = jwtIdToken.GetClaimValue(ils.PrimaryClaimType);
             }
             else
             {
                 // use the access token to retrieve claims from userinfo
                 var userInfoResponse = this.GetUserInfo(accessToken, oidcSetting.UserInfoEndPoint).Result;
-
                 if (string.IsNullOrWhiteSpace(userInfoResponse))
                 {
                     _logger.ErrorFormat("Missing userinfo when retrieving from endpoint {0}", oidcSetting.UserInfoEndPoint);
                     return Task.CompletedTask;
                 }
 
-                var tokenData = JObject.Parse(userInfoResponse);
-                if (!string.IsNullOrWhiteSpace(ils.PrimaryClaimType))
-                {
-                    var arrPrimaryClaims = ils.PrimaryClaimType.Split('/');
-                    var primaryClaimToken = tokenData.GetValue(arrPrimaryClaims.LastOrDefault());
-                    if (primaryClaimToken != null)
-                    {
-                        identityClaims.AddClaim(new Claim(ils.PrimaryClaimType, primaryClaimToken.Value<string>()));
-                    }
-                }
+                JObject tokenData = JObject.Parse(userInfoResponse);
+                primaryClaimValue = tokenData.GetJTokenValue(ils.PrimaryClaimType);
+                secondaryClaimValue = tokenData.GetJTokenValue(ils.SecondaryClaimType);
+                string eduPersonPrincipalName = tokenData.GetJTokenValue(cxClaimKeys.EduPersonPrincipalName);
+                if (!string.IsNullOrWhiteSpace(eduPersonPrincipalName))
+                    identityClaims.AddClaim(new Claim(cxClaimKeys.EduPersonPrincipalName, eduPersonPrincipalName));
+            }
 
-                if (!string.IsNullOrWhiteSpace(ils.SecondaryClaimType))
-                {
-                    var arrSecondaryClaims = ils.SecondaryClaimType.Split('/');
-                    var secondaryClaimToken = tokenData.GetValue(arrSecondaryClaims.LastOrDefault());
-                    if (secondaryClaimToken != null)
-                    {
-                        identityClaims.AddClaim(new Claim(ils.SecondaryClaimType, secondaryClaimToken.Value<string>()));
-                    }
-                }
+            if (!string.IsNullOrWhiteSpace(primaryClaimValue)
+                 && !identityClaims.Claims.Any(t => t.Type.EqualsIgnoreCase(ils.PrimaryClaimType)))
+            {
+                identityClaims.AddClaim(new Claim(ils.PrimaryClaimType, primaryClaimValue));
+            }
 
-                var eduPersonPrincipalNameToken = tokenData.GetValue(cxClaimKeys.EduPersonPrincipalName);
-                if (eduPersonPrincipalNameToken != null)
-                {
-                    identityClaims.AddClaim(new Claim(cxClaimKeys.EduPersonPrincipalName, eduPersonPrincipalNameToken.Value<string>()));
-                }
+            if (!string.IsNullOrWhiteSpace(secondaryClaimValue)
+                && !identityClaims.Claims.Any(t => t.Type.EqualsIgnoreCase(ils.SecondaryClaimType)))
+            {
+                identityClaims.AddClaim(new Claim(ils.SecondaryClaimType, secondaryClaimValue));
+            }
+
+            string sub = jwtIdToken.GetClaimValue(cxClaimKeys.Sub);
+            if (!string.IsNullOrWhiteSpace(sub)
+                && !identityClaims.Claims.Any(t => t.Type.EqualsIgnoreCase(cxClaimKeys.Sub)))
+            {
+                identityClaims.AddClaim(new Claim(cxClaimKeys.Sub, sub));
             }
 
             if (!string.IsNullOrWhiteSpace(oidcSetting.GroupApiEndpoint))
@@ -295,18 +278,9 @@ namespace cx.Authentication.Services
                     return Task.CompletedTask;
                 }
 
-                List<FeideGroup> feideGroups = JsonConvert.DeserializeObject<List<FeideGroup>>(groupInfoJson);
-                if (feideGroups == null || !feideGroups.Any()) return Task.FromResult(0);
-                foreach (var item in feideGroups)
-                {
-                    if (item.OrgType == null ||
-                        !item.OrgType.Any(t => t.EqualsIgnoreCase(cxClaimKeys.GroupOwnerPrimaryAndLowerSecondaryType)
-                                             || t.EqualsIgnoreCase(cxClaimKeys.GroupOwnerUpperSecondaryType))) continue;
-
-                    if (string.IsNullOrEmpty(item.NorEduOrgNIN)) return Task.FromResult(0);
-                    identityClaims.AddClaim(new Claim(cxClaimKeys.NorEduOrgNIN, item.NorEduOrgNIN));
-                    break;
-                }
+                string orgNr = groupInfoJson.GetClaimValue(cxClaimKeys.NorEduOrgNIN);
+                if (string.IsNullOrWhiteSpace(orgNr)) return Task.CompletedTask;
+                identityClaims.AddClaim(new Claim(cxClaimKeys.NorEduOrgNIN, orgNr));
             }
 
             // Set authentication
@@ -322,7 +296,7 @@ namespace cx.Authentication.Services
             context.OwinContext.Set(OwinContextKeys.OidcSetting, oidcSetting);
             context.OwinContext.Set(OidcConstants.TokenResponse.AccessToken, accessToken);
             if (!string.IsNullOrWhiteSpace(sub)) context.OwinContext.Set(cxClaimKeys.Sub, sub);
-            if (!string.IsNullOrWhiteSpace(ssn)) context.OwinContext.Set(ils.PrimaryClaimType, ssn);
+            if (!string.IsNullOrWhiteSpace(primaryClaimValue)) context.OwinContext.Set(ils.PrimaryClaimType, primaryClaimValue);
 
             return Task.CompletedTask;
         }

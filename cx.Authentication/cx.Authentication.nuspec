@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package >
+	<metadata>
+		<id>$id$</id>
+		<version>1.0.0</version>
+		<title>cxAuthentication</title>
+		<authors>Tom Lee</authors>
+		<requireLicenseAcceptance>false</requireLicenseAcceptance>
+		<license type="expression">MIT</license>
+		<!--<projectUrl>http://project_url_here_or_delete_this_line/</projectUrl>-->
+		<!--<iconUrl>http://icon_url_here_or_delete_this_line/</iconUrl>-->
+		<description>cxAuthentication</description>
+		<releaseNotes>Support NET48.</releaseNotes>
+		<copyright>Tom Lee 2023</copyright>
+		<tags>OIDC Authentication</tags>
+	</metadata>
+</package>

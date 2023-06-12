@@ -125,7 +125,7 @@ namespace cx.Authentication
                     AuthorizationCodeReceived = context =>
                     {
                         IOidcClientService oidcClientService = new OidcClientService();
-                        return oidcClientService.GetClaimsAndAuthentication(context, ils);
+                        return oidcClientService.SetAuthentication(context, ils);
                     },
                     AuthenticationFailed = (context) =>
                     {

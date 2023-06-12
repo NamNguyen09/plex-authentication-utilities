@@ -33,6 +33,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="cx.Authentication.Utilities, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\cx.Authentication.Utilities.1.0.0\lib\net48\cx.Authentication.Utilities.dll</HintPath>
+    </Reference>
     <Reference Include="IdentityModel, Version=6.1.0.0, Culture=neutral, PublicKeyToken=e7877f4675df049f, processorArchitecture=MSIL">
       <HintPath>..\packages\IdentityModel.6.1.0\lib\net472\IdentityModel.dll</HintPath>
     </Reference>
@@ -144,6 +147,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Extensions\ClaimsPrincipalExtensions.cs" />
+    <Compile Include="Extensions\JwtSecurityTokenExtensions.cs" />
+    <Compile Include="Extensions\LoginProviderExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="cxAuthentication.cs" />
     <Compile Include="Services\OidcClientService.cs" />
@@ -151,13 +157,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <None Include="cx.Authentication.nuspec" />
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\cx.Authentication.Utilities\cx.Authentication.Utilities.csproj">
-      <Project>{56c96745-25bf-464d-8083-52adcfa2f66e}</Project>
-      <Name>cx.Authentication.Utilities</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
