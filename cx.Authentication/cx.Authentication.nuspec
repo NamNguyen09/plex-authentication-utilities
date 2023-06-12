@@ -10,8 +10,13 @@
 		<!--<projectUrl>http://project_url_here_or_delete_this_line/</projectUrl>-->
 		<!--<iconUrl>http://icon_url_here_or_delete_this_line/</iconUrl>-->
 		<description>cxAuthentication</description>
-		<releaseNotes>Support NET48.</releaseNotes>
+		<releaseNotes>cxAuthentication that support NET48.</releaseNotes>
 		<copyright>Tom Lee 2023</copyright>
 		<tags>OIDC Authentication</tags>
+		<dependencies>
+			<group targetFramework=".NETFramework4.8" >
+				<dependency id="Microsoft.Owin" version="4.2.2" />
+			</group>			
+		</dependencies>
 	</metadata>
 </package>
