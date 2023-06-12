@@ -1,0 +1,11 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+.vs
+/bin/Debug
+/cx.Authentication.Utilities/bin
+/cx.Authentication.Utilities/obj
+/packages
+/obj/Debug
+/cx.Authentication/bin
+/cx.Authentication/obj
