@@ -220,7 +220,7 @@ namespace cx.Authentication.Services
             ////string refreshToken = tokenResponse.RefreshToken;
 
             // create new identity
-            var identityClaims = new ClaimsIdentity(ils.ClientId);
+            var identityClaims = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationType);
             identityClaims.AddClaim(new Claim(OidcConstants.TokenRequest.Code, context.Code));
             identityClaims.AddClaim(new Claim(OidcConstants.TokenResponse.AccessToken, accessToken));
             identityClaims.AddClaim(new Claim(OidcConstants.AuthorizeResponse.ExpiresIn, DateTime.Now.AddSeconds(tokenResponse.ExpiresIn).ToLocalTime().ToString()));
