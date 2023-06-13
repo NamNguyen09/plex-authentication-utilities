@@ -7,10 +7,12 @@ using cx.Authentication.Services;
 using cx.Authentication.Utilities.Dtos;
 using cx.Authentication.Utilities.Enums;
 using cx.Authentication.Utilities.Extentions;
+using cx.Authentication.Utilities.Settings;
 using IdentityModel;
 using log4net;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
 using Microsoft.Owin.Security.OpenIdConnect;
 using Microsoft.Owin.Security.WsFederation;
@@ -119,6 +121,14 @@ namespace cx.Authentication
                         {
                             context.ProtocolMessage.Parameters.Add(OidcConstants.AuthorizeRequest.AcrValues, ils.OidcSetting.AcrValues);
                         }
+                        string redirectUri = context.OwinContext.Authentication.AuthenticationResponseChallenge.Properties.RedirectUri;
+                        if (string.IsNullOrWhiteSpace(redirectUri)) redirectUri = ils.RedirectUri;
+
+                        var properties = new Dictionary<string, object>(StringComparer.Ordinal)
+                            {
+                                { OwinContextKeys.RedirectUri, redirectUri }
+                            };
+                        context.Options.Description = new AuthenticationDescription(properties);
 
                         return Task.FromResult(0);
                     },

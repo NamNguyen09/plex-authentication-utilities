@@ -211,6 +211,7 @@ namespace cx.Authentication.Services
 
             if (string.IsNullOrWhiteSpace(accessToken))
             {
+                context.LogContext(ils, "Access token is empty to retrieve user info for collecting claims.");
                 _logger.ErrorFormat("Cannot get access token when user login with loginserviceid: '{0}', url: '{1}'",
                        ils.LoginServiceID, ils.RedirectUri);
                 return Task.CompletedTask;
@@ -288,7 +289,9 @@ namespace cx.Authentication.Services
 
             context.OwinContext.Set(OwinContextKeys.LoginserviceId, ils.LoginServiceID);
             context.OwinContext.Set(OwinContextKeys.Authority, ils.Authority);
-            context.OwinContext.Set(OwinContextKeys.RedirectUri, ils.RedirectUri);
+            var redirectUriObj = context.Options.Description.Properties[OwinContextKeys.RedirectUri];
+            string redirectUri = redirectUriObj != null ? redirectUriObj.ToString() : ils.RedirectUri;
+            context.OwinContext.Set(OwinContextKeys.RedirectUri, redirectUri);
             context.OwinContext.Set(OwinContextKeys.ClientId, ils.ClientId);
             context.OwinContext.Set(OwinContextKeys.PrimaryClaimType, ils.PrimaryClaimType);
             context.OwinContext.Set(OwinContextKeys.SecondaryClaimType, ils.SecondaryClaimType);
