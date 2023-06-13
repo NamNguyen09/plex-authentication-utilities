@@ -147,6 +147,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Extensions\AuthorizationCodeReceivedNotificationExtensions.cs" />
     <Compile Include="Extensions\ClaimsPrincipalExtensions.cs" />
     <Compile Include="Extensions\JwtSecurityTokenExtensions.cs" />
     <Compile Include="Extensions\LoginProviderExtensions.cs" />
