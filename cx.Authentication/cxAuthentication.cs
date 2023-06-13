@@ -128,6 +128,8 @@ namespace cx.Authentication
                             {
                                 { OwinContextKeys.RedirectUri, redirectUri }
                             };
+                        context.Options.AuthenticationType = ils.ClientId;
+                        context.Options.Caption = OpenIdConnectAuthenticationDefaults.Caption;
                         context.Options.Description = new AuthenticationDescription(properties);
 
                         return Task.FromResult(0);
