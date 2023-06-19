@@ -45,7 +45,6 @@
     <Compile Include="Dtos\LoginProvider.cs" />
     <Compile Include="Dtos\OidcModel.cs" />
     <Compile Include="Enums\cxLoginType.cs" />
-    <Compile Include="Extentions\StringExtensions.cs" />
     <Compile Include="Identity\cxIdentity.cs" />
     <Compile Include="Settings\cxClaimKeys.cs" />
     <Compile Include="Settings\OidcSetting.cs" />

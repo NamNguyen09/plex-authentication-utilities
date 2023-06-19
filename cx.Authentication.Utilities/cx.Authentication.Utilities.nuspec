@@ -10,7 +10,7 @@
 		<!--<projectUrl>http://project_url_here_or_delete_this_line/</projectUrl>-->
 		<!--<iconUrl>http://icon_url_here_or_delete_this_line/</iconUrl>-->
 		<description>OIDC authentication helper.</description>
-		<releaseNotes>Support NET48.</releaseNotes>
+		<releaseNotes>Remove stringextensions.</releaseNotes>
 		<copyright>Tom Lee 2023</copyright>
 		<tags>OIDC</tags>
 	</metadata>
