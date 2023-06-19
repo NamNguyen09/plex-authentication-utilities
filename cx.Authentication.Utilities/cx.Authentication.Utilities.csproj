@@ -46,9 +46,8 @@
     <Compile Include="Dtos\OidcModel.cs" />
     <Compile Include="Enums\cxLoginType.cs" />
     <Compile Include="Identity\cxIdentity.cs" />
-    <Compile Include="Settings\cxClaimKeys.cs" />
+    <Compile Include="Settings\cxAuthConstants.cs" />
     <Compile Include="Settings\OidcSetting.cs" />
-    <Compile Include="Settings\OwinContextKeys.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

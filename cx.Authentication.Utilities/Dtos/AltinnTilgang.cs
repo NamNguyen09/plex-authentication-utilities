@@ -4,14 +4,14 @@ using System.Collections.Generic;
 namespace cx.Authentication.Utilities.Dtos
 {
     [Serializable]
-    public class AltinnTilgang
+    public partial class AltinnTilgang
     {
         public Subject Subject { get; set; }
         public List<Right> Rights { get; set; }
     }
 
     [Serializable]
-    public class Right
+    public partial class Right
     {
         public int RightId { get; set; }
         public string RightType { get; set; }
@@ -22,7 +22,7 @@ namespace cx.Authentication.Utilities.Dtos
     }
 
     [Serializable]
-    public class Subject
+    public partial class Subject
     {
         public string Name { get; set; }
         public string Type { get; set; }

@@ -3,7 +3,7 @@
 namespace cx.Authentication.Utilities.Dtos
 {
     [Serializable]
-    public class AltinnRolle
+    public partial class AltinnRolle
     {
         public int RoleDefinitionId { get; set; }
         public string RoleType { get; set; }

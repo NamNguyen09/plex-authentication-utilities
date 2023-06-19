@@ -4,7 +4,7 @@ using cx.Authentication.Utilities.Settings;
 namespace cx.Authentication.Utilities.Dtos
 {
     [Serializable]
-    public class LoginProvider
+    public partial class LoginProvider
     {
         public int LoginServiceID { get; set; }
 

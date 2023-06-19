@@ -3,7 +3,7 @@
 namespace cx.Authentication.Utilities.Dtos
 {
     [Serializable]
-    public class AltinnAvgiver
+    public partial class AltinnAvgiver
     {
         public string Name { get; set; }
         public string Type { get; set; }
