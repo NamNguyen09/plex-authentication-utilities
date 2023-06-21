@@ -9,8 +9,8 @@ using System.Text;
 using System.Threading.Tasks;
 using cx.Authentication.Extensions;
 using cx.Authentication.Utilities.Dtos;
-using cx.Authentication.Utilities.Extentions;
 using cx.Authentication.Utilities.Settings;
+using cx.Utiities;
 using IdentityModel;
 using IdentityModel.Client;
 using log4net;
@@ -176,16 +176,17 @@ namespace cx.Authentication.Services
             TokenResponse tokenResponse = tokenClient.RequestAuthorizationCodeTokenAsync(context.Code, ils.RedirectUri, codeVerifier).Result;
 
             // Check security level
+            string securityLevel = cxAuthConstants.DefaultValues.SecurityLevel;
             JwtSecurityToken jwtIdToken = new JwtSecurityToken(tokenResponse.IdentityToken);
-            if (jwtIdToken != null && !string.IsNullOrWhiteSpace(oidcSetting.SecurityLevelClaimType)
-                && !string.IsNullOrWhiteSpace(oidcSetting.SupportedSecurityLevel))
+            if (jwtIdToken != null)
             {
                 Claim acrClaim = jwtIdToken.Claims.FirstOrDefault(t => t.Type.EqualsIgnoreCase(oidcSetting.SecurityLevelClaimType));
+                if (acrClaim != null) securityLevel = acrClaim.Value;
                 var levels = oidcSetting.SupportedSecurityLevel.Split(',');
-                if (acrClaim == null || !levels.Contains(acrClaim.Value))
+                if (string.IsNullOrEmpty(securityLevel) || !levels.Contains(securityLevel))
                 {
                     _logger.Warn(string.Format("Require SecurityLevel is '{0}' when user login with authority '{1}' while the returned value is '{2}'",
-                      oidcSetting.AcrValues, ils.Authority, acrClaim == null ? "" : acrClaim.Value));
+                      oidcSetting.AcrValues, ils.Authority, securityLevel));
                     _logger.Debug(string.Format("IdToken info: '{0}'", JsonConvert.SerializeObject(jwtIdToken)));
                     return Task.CompletedTask;
                 }
@@ -226,6 +227,7 @@ namespace cx.Authentication.Services
             identityClaims.AddClaim(new Claim(OidcConstants.AuthorizeResponse.ExpiresIn, DateTime.Now.AddSeconds(tokenResponse.ExpiresIn).ToLocalTime().ToString()));
             ////identityClaims.AddClaim(new Claim(ClaimKeys.RefreshToken, refreshToken));
             identityClaims.AddClaim(new Claim(OidcConstants.TokenResponse.IdentityToken, tokenResponse.IdentityToken));
+            identityClaims.AddClaim(new Claim(cxAuthConstants.ClaimKeys.SecurityLevelClaimType, securityLevel));
 
             string primaryClaimValue = "";
             string secondaryClaimValue = "";
@@ -246,9 +248,9 @@ namespace cx.Authentication.Services
                 JObject tokenData = JObject.Parse(userInfoResponse);
                 primaryClaimValue = tokenData.GetJTokenValue(ils.PrimaryClaimType);
                 secondaryClaimValue = tokenData.GetJTokenValue(ils.SecondaryClaimType);
-                string eduPersonPrincipalName = tokenData.GetJTokenValue(cxClaimKeys.EduPersonPrincipalName);
+                string eduPersonPrincipalName = tokenData.GetJTokenValue(cxAuthConstants.ClaimKeys.EduPersonPrincipalName);
                 if (!string.IsNullOrWhiteSpace(eduPersonPrincipalName))
-                    identityClaims.AddClaim(new Claim(cxClaimKeys.EduPersonPrincipalName, eduPersonPrincipalName));
+                    identityClaims.AddClaim(new Claim(cxAuthConstants.ClaimKeys.EduPersonPrincipalName, eduPersonPrincipalName));
             }
 
             if (!string.IsNullOrWhiteSpace(primaryClaimValue)
@@ -263,11 +265,11 @@ namespace cx.Authentication.Services
                 identityClaims.AddClaim(new Claim(ils.SecondaryClaimType, secondaryClaimValue));
             }
 
-            string sub = jwtIdToken.GetClaimValue(cxClaimKeys.Sub);
+            string sub = jwtIdToken.GetClaimValue(cxAuthConstants.ClaimKeys.Sub);
             if (!string.IsNullOrWhiteSpace(sub)
-                && !identityClaims.Claims.Any(t => t.Type.EqualsIgnoreCase(cxClaimKeys.Sub)))
+                && !identityClaims.Claims.Any(t => t.Type.EqualsIgnoreCase(cxAuthConstants.ClaimKeys.Sub)))
             {
-                identityClaims.AddClaim(new Claim(cxClaimKeys.Sub, sub));
+                identityClaims.AddClaim(new Claim(cxAuthConstants.ClaimKeys.Sub, sub));
             }
 
             if (!string.IsNullOrWhiteSpace(oidcSetting.GroupApiEndpoint))
@@ -279,27 +281,28 @@ namespace cx.Authentication.Services
                     return Task.CompletedTask;
                 }
 
-                string orgNr = groupInfoJson.GetClaimValue(cxClaimKeys.NorEduOrgNIN);
+                string orgNr = groupInfoJson.GetClaimValue(cxAuthConstants.ClaimKeys.NorEduOrgNIN);
                 if (string.IsNullOrWhiteSpace(orgNr)) return Task.CompletedTask;
-                identityClaims.AddClaim(new Claim(cxClaimKeys.NorEduOrgNIN, orgNr));
+                identityClaims.AddClaim(new Claim(cxAuthConstants.ClaimKeys.NorEduOrgNIN, orgNr));
             }
 
             // Set authentication
             context.AuthenticationTicket = new AuthenticationTicket(identityClaims, new AuthenticationProperties() { IsPersistent = false });
 
-            context.OwinContext.Set(OwinContextKeys.LoginserviceId, ils.LoginServiceID);
-            context.OwinContext.Set(OwinContextKeys.Authority, ils.Authority);
-            var redirectUriObj = context.Options.Description.Properties[OwinContextKeys.RedirectUri];
+            context.OwinContext.Set(cxAuthConstants.OwinContextKeys.LoginserviceId, ils.LoginServiceID);
+            context.OwinContext.Set(cxAuthConstants.OwinContextKeys.Authority, ils.Authority);
+            var redirectUriObj = context.Options.Description.Properties[cxAuthConstants.OwinContextKeys.RedirectUri];
             string redirectUri = redirectUriObj != null ? redirectUriObj.ToString() : ils.RedirectUri;
-            context.OwinContext.Set(OwinContextKeys.RedirectUri, redirectUri);
-            context.OwinContext.Set(OwinContextKeys.ClientId, ils.ClientId);
-            context.OwinContext.Set(OwinContextKeys.PrimaryClaimType, ils.PrimaryClaimType);
-            context.OwinContext.Set(OwinContextKeys.SecondaryClaimType, ils.SecondaryClaimType);
-            context.OwinContext.Set(OwinContextKeys.LoginServiceType, ils.LoginServiceType);
-            context.OwinContext.Set(OwinContextKeys.OidcSetting, oidcSetting);
+            context.OwinContext.Set(cxAuthConstants.OwinContextKeys.RedirectUri, redirectUri);
+            context.OwinContext.Set(cxAuthConstants.OwinContextKeys.ClientId, ils.ClientId);
+            context.OwinContext.Set(cxAuthConstants.OwinContextKeys.PrimaryClaimType, ils.PrimaryClaimType);
+            context.OwinContext.Set(cxAuthConstants.OwinContextKeys.SecondaryClaimType, ils.SecondaryClaimType);
+            context.OwinContext.Set(cxAuthConstants.OwinContextKeys.LoginServiceType, ils.LoginServiceType);
+            context.OwinContext.Set(cxAuthConstants.OwinContextKeys.OidcSetting, oidcSetting);
             context.OwinContext.Set(OidcConstants.TokenResponse.AccessToken, accessToken);
-            if (!string.IsNullOrWhiteSpace(sub)) context.OwinContext.Set(cxClaimKeys.Sub, sub);
+            if (!string.IsNullOrWhiteSpace(sub)) context.OwinContext.Set(cxAuthConstants.ClaimKeys.Sub, sub);
             if (!string.IsNullOrWhiteSpace(primaryClaimValue)) context.OwinContext.Set(ils.PrimaryClaimType, primaryClaimValue);
+            context.OwinContext.Set(cxAuthConstants.ClaimKeys.SecurityLevelClaimType, securityLevel);
 
             return Task.CompletedTask;
         }

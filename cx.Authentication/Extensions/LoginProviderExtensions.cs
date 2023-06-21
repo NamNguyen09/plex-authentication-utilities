@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using cx.Authentication.Utilities.Dtos;
-using cx.Authentication.Utilities.Extentions;
 using cx.Authentication.Utilities.Settings;
+using cx.Utiities;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -32,8 +32,8 @@ namespace cx.Authentication.Extensions
             foreach (var item in feideGroups)
             {
                 if (item.OrgType == null ||
-                    !item.OrgType.Any(t => t.EqualsIgnoreCase(cxClaimKeys.GroupOwnerPrimaryAndLowerSecondaryType)
-                                         || t.EqualsIgnoreCase(cxClaimKeys.GroupOwnerUpperSecondaryType))) continue;
+                    !item.OrgType.Any(t => t.EqualsIgnoreCase(cxAuthConstants.ClaimKeys.GroupOwnerPrimaryAndLowerSecondaryType)
+                                         || t.EqualsIgnoreCase(cxAuthConstants.ClaimKeys.GroupOwnerUpperSecondaryType))) continue;
 
                 if (string.IsNullOrEmpty(item.NorEduOrgNIN)) return "";
                 return item.NorEduOrgNIN;

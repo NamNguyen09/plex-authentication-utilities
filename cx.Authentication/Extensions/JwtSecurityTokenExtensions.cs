@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
-using cx.Authentication.Utilities.Extentions;
+using cx.Utiities;
 using log4net;
 
 namespace cx.Authentication.Extensions

@@ -34,7 +34,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="cx.Authentication.Utilities, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\cx.Authentication.Utilities.1.0.0\lib\net48\cx.Authentication.Utilities.dll</HintPath>
+      <HintPath>..\packages\cx.Authentication.Utilities.1.2.0\lib\net48\cx.Authentication.Utilities.dll</HintPath>
+    </Reference>
+    <Reference Include="cx.Utiities, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\cx.Utiities.1.0.0\lib\net48\cx.Utiities.dll</HintPath>
     </Reference>
     <Reference Include="IdentityModel, Version=6.1.0.0, Culture=neutral, PublicKeyToken=e7877f4675df049f, processorArchitecture=MSIL">
       <HintPath>..\packages\IdentityModel.6.1.0\lib\net472\IdentityModel.dll</HintPath>

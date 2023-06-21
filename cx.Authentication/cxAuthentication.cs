@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 using cx.Authentication.Services;
 using cx.Authentication.Utilities.Dtos;
 using cx.Authentication.Utilities.Enums;
-using cx.Authentication.Utilities.Extentions;
 using cx.Authentication.Utilities.Settings;
+using cx.Utiities;
 using IdentityModel;
 using log4net;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
@@ -126,7 +126,7 @@ namespace cx.Authentication
 
                         var properties = new Dictionary<string, object>(StringComparer.Ordinal)
                             {
-                                { OwinContextKeys.RedirectUri, redirectUri }
+                                {cxAuthConstants.OwinContextKeys.RedirectUri, redirectUri }
                             };
 
                         context.Options.Description = new AuthenticationDescription(properties) { AuthenticationType = ils.ClientId, Caption = OpenIdConnectAuthenticationDefaults.Caption };
