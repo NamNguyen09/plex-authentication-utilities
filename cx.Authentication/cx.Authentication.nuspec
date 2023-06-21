@@ -10,7 +10,7 @@
 		<!--<projectUrl>http://project_url_here_or_delete_this_line/</projectUrl>-->
 		<!--<iconUrl>http://icon_url_here_or_delete_this_line/</iconUrl>-->
 		<description>cxAuthentication</description>
-		<releaseNotes>Fix cannot signout.</releaseNotes>
+		<releaseNotes>Add security level claim.</releaseNotes>
 		<copyright>Tom Lee 2023</copyright>
 		<tags>OIDC Authentication</tags>
 		<!--<dependencies>
