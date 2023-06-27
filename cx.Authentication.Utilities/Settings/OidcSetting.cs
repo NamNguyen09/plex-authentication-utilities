@@ -12,7 +12,7 @@ namespace cx.Authentication.Utilities.Settings
         public string GroupApiEndpoint { get; set; }
         public string AcrValues { get; set; }
         public string SecurityLevelClaimType { get; set; } = cxAuthConstants.ClaimKeys.SecurityLevelClaimType;
-        public string SupportedSecurityLevel { get; set; } = cxAuthConstants.DefaultValues.SecurityLevel;
+        public string SupportedSecurityLevel { get; set; }
         public string PersonalIdentityClaimType { get; set; }
         public string TokenAuthenticationStyle { get; set; }
         public string RoreApiEndPoint { get; set; }
