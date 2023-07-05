@@ -33,6 +33,8 @@
             public const string GivenName = "given_name";
             public const string FamilyName = "family_name";
             public const string SecurityLevelClaimType = "acr";
+            public const string TokenIdToken = ".Token.id_token";
+            public const string TokenAccessToken = ".Token.access_token";
         }
         public static class OwinContextKeys
         {
