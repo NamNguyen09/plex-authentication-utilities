@@ -10,3 +10,5 @@
 /cx.Authentication/bin
 /cx.Authentication/obj
 *.nupkg
+/cx.LoginProvider.Utilities.Core/bin/*
+/cx.LoginProvider.Utilities.Core/obj/*
