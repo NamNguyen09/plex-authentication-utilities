@@ -2,7 +2,7 @@
 <package >
 	<metadata>
 		<id>$id$</id>
-		<version>1.6.0</version>
+		<version>1.7.0</version>
 		<title>cxAuthentication</title>
 		<authors>Tom Lee</authors>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
